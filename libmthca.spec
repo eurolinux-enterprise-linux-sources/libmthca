@@ -1,23 +1,17 @@
 Name: libmthca
-Version: 1.0.5
-Release: 7%{?dist}
+Version: 1.0.6
+Release: 2%{?dist}
 Summary: Mellanox InfiniBand HCA Userspace Driver
-Provides: libibverbs-driver
+Provides: libibverbs-driver.%{_arch}
 Group: System Environment/Libraries
 License: GPLv2 or BSD
 Url: http://openfabrics.org/
 Source: http://openfabrics.org/downloads/mthca/%{name}-%{version}.tar.gz
-Patch0: libmthca-Fix-race-between-create-QP-and-destroy-QP.patch
-Patch1: libmthca-Remove-empty-stubs-for-detach-attach_mcast.patch
-Patch2: libmthca-Use-mmap-MAP_ANONYMOUS-to-allocate-queue-buffers.patch
-Patch3: libmthca-Update-function-prototypes-to-match-libibverbs-enum-.patch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Provides: %{name}-devel = %{version}-%{release}
 ExcludeArch: s390 s390x
-BuildRequires: libibverbs-devel >= 1.1.3
-%ifnarch ia64
+BuildRequires: libibverbs-devel > 1.1.4
 BuildRequires: valgrind-devel
-%endif
 
 %description
 libmthca provides a device-specific userspace driver for Mellanox HCAs
@@ -37,17 +31,9 @@ application, which may be useful for debugging.
 
 %prep
 %setup -q
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
 
 %build
-%ifnarch ia64
 %configure --with-valgrind
-%else
-%configure
-%endif
 make %{?_smp_mflags}
 
 %install
@@ -70,6 +56,17 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libmthca.a
 
 %changelog
+* Mon Jul 25 2011 Doug Ledford <dledford@redhat.com> - 1.0.6-2
+- Add missing arch macro to libibverbs-driver provide
+- Related: bz725016
+
+* Fri Jul 22 2011 Doug Ledford <dledford@redhat.com> - 1.0.6-1
+- Update to latest upstream version (1.0.5 -> 1.0.6)
+- Remove ifnarch ia64 around valgrind support since we don't build on ia64
+  any more
+- Remove 4 patches that have been rolled into upstream release
+- Related: bz725016
+
 * Mon Jan 11 2010 Doug Ledford <dledford@redhat.com> - 1.0.5-7
 - Don't try to build on s390(x) as the hardware doesn't exist there
 

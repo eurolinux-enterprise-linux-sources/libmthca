@@ -117,7 +117,7 @@ int mthca_free_pd(struct ibv_pd *pd)
 
 static struct ibv_mr *__mthca_reg_mr(struct ibv_pd *pd, void *addr,
 				     size_t length, uint64_t hca_va,
-				     enum ibv_access_flags access,
+				     int access,
 				     int dma_sync)
 {
 	struct ibv_mr *mr;
@@ -157,7 +157,7 @@ static struct ibv_mr *__mthca_reg_mr(struct ibv_pd *pd, void *addr,
 }
 
 struct ibv_mr *mthca_reg_mr(struct ibv_pd *pd, void *addr,
-			    size_t length, enum ibv_access_flags access)
+			    size_t length, int access)
 {
 	return __mthca_reg_mr(pd, addr, length, (uintptr_t) addr, access, 0);
 }
@@ -468,7 +468,7 @@ err:
 
 int mthca_modify_srq(struct ibv_srq *srq,
 		     struct ibv_srq_attr *attr,
-		     enum ibv_srq_attr_mask attr_mask)
+		     int attr_mask)
 {
 	struct ibv_modify_srq cmd;
 
@@ -566,6 +566,7 @@ struct ibv_qp *mthca_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
 		cmd.sq_db_index = cmd.rq_db_index = 0;
 	}
 
+	pthread_mutex_lock(&to_mctx(pd->context)->qp_table_mutex);
 	ret = ibv_cmd_create_qp(pd, &qp->ibv_qp, attr, &cmd.ibv_cmd, sizeof cmd,
 				&resp, sizeof resp);
 	if (ret)
@@ -579,6 +580,7 @@ struct ibv_qp *mthca_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
 	ret = mthca_store_qp(to_mctx(pd->context), qp->ibv_qp.qp_num, qp);
 	if (ret)
 		goto err_destroy;
+	pthread_mutex_unlock(&to_mctx(pd->context)->qp_table_mutex);
 
 	qp->sq.max 	    = attr->cap.max_send_wr;
 	qp->rq.max 	    = attr->cap.max_recv_wr;
@@ -592,6 +594,7 @@ err_destroy:
 	ibv_cmd_destroy_qp(&qp->ibv_qp);
 
 err_rq_db:
+	pthread_mutex_unlock(&to_mctx(pd->context)->qp_table_mutex);
 	if (mthca_is_memfree(pd->context))
 		mthca_free_db(to_mctx(pd->context)->db_tab, MTHCA_DB_TYPE_RQ,
 			      qp->rq.db_index);
@@ -615,7 +618,7 @@ err:
 }
 
 int mthca_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
-		   enum ibv_qp_attr_mask attr_mask,
+		   int attr_mask,
 		   struct ibv_qp_init_attr *init_attr)
 {
 	struct ibv_query_qp cmd;
@@ -624,7 +627,7 @@ int mthca_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
 }
 
 int mthca_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
-		    enum ibv_qp_attr_mask attr_mask)
+		    int attr_mask)
 {
 	struct ibv_modify_qp cmd;
 	int ret;
@@ -686,9 +689,12 @@ int mthca_destroy_qp(struct ibv_qp *qp)
 {
 	int ret;
 
+	pthread_mutex_lock(&to_mctx(qp->context)->qp_table_mutex);
 	ret = ibv_cmd_destroy_qp(qp);
-	if (ret)
+	if (ret) {
+		pthread_mutex_unlock(&to_mctx(qp->context)->qp_table_mutex);
 		return ret;
+	}
 
 	mthca_lock_cqs(qp);
 
@@ -700,6 +706,7 @@ int mthca_destroy_qp(struct ibv_qp *qp)
 	mthca_clear_qp(to_mctx(qp->context), qp->qp_num);
 
 	mthca_unlock_cqs(qp);
+	pthread_mutex_unlock(&to_mctx(qp->context)->qp_table_mutex);
 
 	if (mthca_is_memfree(qp->context)) {
 		mthca_free_db(to_mctx(qp->context)->db_tab, MTHCA_DB_TYPE_RQ,
@@ -738,14 +745,4 @@ int mthca_destroy_ah(struct ibv_ah *ah)
 	free(to_mah(ah));
 
 	return 0;
-}
-
-int mthca_attach_mcast(struct ibv_qp *qp, union ibv_gid *gid, uint16_t lid)
-{
-	return ibv_cmd_attach_mcast(qp, gid, lid);
-}
-
-int mthca_detach_mcast(struct ibv_qp *qp, union ibv_gid *gid, uint16_t lid)
-{
-	return ibv_cmd_detach_mcast(qp, gid, lid);
 }
