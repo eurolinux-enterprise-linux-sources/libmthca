@@ -1,6 +1,6 @@
 Name: libmthca
 Version: 1.0.6
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Mellanox InfiniBand HCA Userspace Driver
 Provides: libibverbs-driver.%{_arch}
 Group: System Environment/Libraries
@@ -56,6 +56,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libmthca.a
 
 %changelog
+* Mon Jan 23 2012 Doug Ledford <dledford@redhat.com> - 1.0.6-3
+- Bump and rebuild against latest libibverbs
+- Related: bz750609
+
 * Mon Jul 25 2011 Doug Ledford <dledford@redhat.com> - 1.0.6-2
 - Add missing arch macro to libibverbs-driver provide
 - Related: bz725016
