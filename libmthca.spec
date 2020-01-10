@@ -1,6 +1,6 @@
 Name: libmthca
 Version: 1.0.6
-Release: 13%{?dist}
+Release: 8%{?dist}
 Summary: Mellanox InfiniBand HCA Userspace Driver
 Provides: libibverbs-driver.%{_arch}
 Group: System Environment/Libraries
@@ -11,8 +11,7 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Provides: %{name}-devel = %{version}-%{release}
 ExcludeArch: s390 s390x
 BuildRequires: libibverbs-devel > 1.1.5
-Requires: rdma
-%ifnarch ia64 %{sparc}
+%ifnarch ia64 %{sparc} %{arm}
 BuildRequires: valgrind-devel
 %endif
 
@@ -36,7 +35,7 @@ application, which may be useful for debugging.
 %setup -q
 
 %build
-%ifnarch ia64 %{sparc}
+%ifnarch ia64 %{sparc} %{arm}
 %configure --with-valgrind
 %else
 %configure
@@ -44,13 +43,13 @@ application, which may be useful for debugging.
 make %{?_smp_mflags}
 
 %install
-rm -rf %{buildroot}
+rm -rf $RPM_BUILD_ROOT
 make DESTDIR=%{buildroot} install
 # remove unpackaged files from the buildroot
-rm -f %{buildroot}%{_libdir}/*.la %{buildroot}%{_libdir}/libmthca.so
+rm -f $RPM_BUILD_ROOT%{_libdir}/*.la $RPM_BUILD_ROOT%{_libdir}/libmthca.so
 
 %clean
-rm -rf %{buildroot}
+rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
@@ -63,25 +62,6 @@ rm -rf %{buildroot}
 %{_libdir}/libmthca.a
 
 %changelog
-* Tue Sep 08 2015 Doug Ledford <dledford@redhat.com> - 1.0.6-13
-- Fix two more date entries
-- Related: bz1172462
-
-* Tue Dec 23 2014 Doug Ledford <dledford@redhat.com> - 1.0.6-12
-- Rebuild with requires for rdma
-- Related: bz1164618
-
-* Fri Oct 17 2014 Doug Ledford <dledford@redhat.com> - 1.0.6-11
-- Bump and rebuild against latest libibverbs and valgrind (1142115)
-- Related: bz1137044
-
-* Mon Mar 03 2014 Doug Ledford <dledford@redhat.com> - 1.0.6-10
-- Bump and rebuild against latest libibverbs
-- Related: bz1062281
-
-* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.0.6-9
-- Mass rebuild 2013-12-27
-
 * Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.6-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
@@ -161,13 +141,13 @@ rm -rf %{buildroot}
 * Wed Jul 26 2006 Roland Dreier <rdreier@cisco.com> - 1.0.3-1
 - New upstream release
 
-* Mon Mar 13 2006 Roland Dreier <rdreier@cisco.com> - 1.0.2-1
+* Mon Mar 14 2006 Roland Dreier <rdreier@cisco.com> - 1.0.2-1
 - New upstream release
 
 * Thu Feb 16 2006 Roland Dreier <rdreier@cisco.com> - 1.0-1
 - New upstream release
 
-* Wed Feb 15 2006 Roland Dreier <rolandd@cisco.com> - 1.0-0.5.rc7
+* Sun Feb 15 2006 Roland Dreier <rolandd@cisco.com> - 1.0-0.5.rc7
 - New upstream release
 
 * Sun Jan 22 2006 Roland Dreier <rolandd@cisco.com> - 1.0-0.4.rc6
