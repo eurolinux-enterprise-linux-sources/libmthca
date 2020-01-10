@@ -1,6 +1,6 @@
 Name: libmthca
 Version: 1.0.6
-Release: 10%{?dist}
+Release: 12%{?dist}
 Summary: Mellanox InfiniBand HCA Userspace Driver
 Provides: libibverbs-driver.%{_arch}
 Group: System Environment/Libraries
@@ -11,7 +11,8 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Provides: %{name}-devel = %{version}-%{release}
 ExcludeArch: s390 s390x
 BuildRequires: libibverbs-devel > 1.1.5
-%ifnarch ia64 %{sparc} %{arm}
+Requires: rdma
+%ifnarch ia64 %{sparc}
 BuildRequires: valgrind-devel
 %endif
 
@@ -35,7 +36,7 @@ application, which may be useful for debugging.
 %setup -q
 
 %build
-%ifnarch ia64 %{sparc} %{arm}
+%ifnarch ia64 %{sparc}
 %configure --with-valgrind
 %else
 %configure
@@ -43,13 +44,13 @@ application, which may be useful for debugging.
 make %{?_smp_mflags}
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 make DESTDIR=%{buildroot} install
 # remove unpackaged files from the buildroot
-rm -f $RPM_BUILD_ROOT%{_libdir}/*.la $RPM_BUILD_ROOT%{_libdir}/libmthca.so
+rm -f %{buildroot}%{_libdir}/*.la %{buildroot}%{_libdir}/libmthca.so
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
@@ -62,6 +63,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libmthca.a
 
 %changelog
+* Tue Dec 23 2014 Doug Ledford <dledford@redhat.com> - 1.0.6-12
+- Rebuild with requires for rdma
+- Related: bz1164618
+
+* Fri Oct 17 2014 Doug Ledford <dledford@redhat.com> - 1.0.6-11
+- Bump and rebuild against latest libibverbs and valgrind (1142115)
+- Related: bz1137044
+
 * Mon Mar 03 2014 Doug Ledford <dledford@redhat.com> - 1.0.6-10
 - Bump and rebuild against latest libibverbs
 - Related: bz1062281
