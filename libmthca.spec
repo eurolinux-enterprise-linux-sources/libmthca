@@ -1,6 +1,6 @@
 Name: libmthca
 Version: 1.0.6
-Release: 12%{?dist}
+Release: 13%{?dist}
 Summary: Mellanox InfiniBand HCA Userspace Driver
 Provides: libibverbs-driver.%{_arch}
 Group: System Environment/Libraries
@@ -63,6 +63,10 @@ rm -rf %{buildroot}
 %{_libdir}/libmthca.a
 
 %changelog
+* Tue Sep 08 2015 Doug Ledford <dledford@redhat.com> - 1.0.6-13
+- Fix two more date entries
+- Related: bz1172462
+
 * Tue Dec 23 2014 Doug Ledford <dledford@redhat.com> - 1.0.6-12
 - Rebuild with requires for rdma
 - Related: bz1164618
@@ -157,13 +161,13 @@ rm -rf %{buildroot}
 * Wed Jul 26 2006 Roland Dreier <rdreier@cisco.com> - 1.0.3-1
 - New upstream release
 
-* Mon Mar 14 2006 Roland Dreier <rdreier@cisco.com> - 1.0.2-1
+* Mon Mar 13 2006 Roland Dreier <rdreier@cisco.com> - 1.0.2-1
 - New upstream release
 
 * Thu Feb 16 2006 Roland Dreier <rdreier@cisco.com> - 1.0-1
 - New upstream release
 
-* Sun Feb 15 2006 Roland Dreier <rolandd@cisco.com> - 1.0-0.5.rc7
+* Wed Feb 15 2006 Roland Dreier <rolandd@cisco.com> - 1.0-0.5.rc7
 - New upstream release
 
 * Sun Jan 22 2006 Roland Dreier <rolandd@cisco.com> - 1.0-0.4.rc6
